@@ -1,11 +1,14 @@
 {
+  "homepage": "http://erochOnGit.github.io/CubeWavesThreeJs",
   "name": "webpacktest1",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "dev": "cross-env NODE_ENV=development webpack-dev-server --hot",
-    "build": "cross-env NODE_ENV=production webpack"
+    "build": "cross-env NODE_ENV=production webpack",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "author": "",
   "license": "ISC",
@@ -27,6 +30,7 @@
   "devDependencies": {
     "css-loader": "^0.28.9",
     "file-loader": "^1.1.11",
+    "gh-pages": "^1.1.0",
     "style-loader": "^0.20.2"
   }
 }

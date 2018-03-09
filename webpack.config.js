@@ -3,9 +3,9 @@ const path = require("path");
 const config = {
   entry: "./src/main.jsx",
   output: {
-    path: path.resolve(__dirname, "assets"),
+    path: path.resolve(__dirname, "build"),
     filename: "main.js",
-    publicPath: "/assets/"
+    publicPath: "/build/"
   },
   resolve: {
     extensions: [".js", ".jsx"]
