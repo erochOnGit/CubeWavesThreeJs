@@ -3,10 +3,23 @@ import { compose, lifecycle } from "recompose";
 import * as THREE from "three";
 var OrbitControls = require("three-orbit-controls")(THREE);
 
+// function that get all the scene cube
+const getCubes = scene => {
+  return scene.children.reduce((acc, curr) => {
+    if (curr.name.includes("cube")) {
+      acc.push(curr);
+    }
+    return acc;
+  }, []);
+};
+
 const ThreeContainer = () =>
   compose(
     lifecycle({
       componentDidMount() {
+        let angle = 0;
+        let cubeHeight = 0.1;
+        let cubeNumber = 6;
         // var THREE = THREELib(); // return THREE JS
         // Our Javascript will go here.
         var scene = new THREE.Scene();
@@ -17,7 +30,7 @@ const ThreeContainer = () =>
           1,
           500
         );
-        camera.position.set(0, 0, 100);
+        camera.position.set(50, 50, 100);
         camera.lookAt(new THREE.Vector3(0, 0, 0));
 
         var renderer = new THREE.WebGLRenderer();
@@ -32,30 +45,46 @@ const ThreeContainer = () =>
           camera.updateProjectionMatrix();
         });
 
-          var controls = new OrbitControls(camera);
+        var controls = new OrbitControls(camera);
 
-          var geometry = new THREE.BufferGeometry();
-// create a simple square shape. We duplicate the top left and bottom right
-// vertices because each vertex needs to appear once per triangle.
-          var vertices = new Float32Array( [
-              -1.0, -1.0,  1.0,
-              1.0, -1.0,  1.0,
-              1.0,  1.0,  1.0,
+        for (let x = 0; x < cubeNumber*2; x += 2) {
+          //first argument is width second is height and third is z axes
+          var geometry = new THREE.BoxBufferGeometry(1, cubeHeight, 1);
+          var material = new THREE.MeshPhongMaterial({
+            color: 0x00ff00,
+            dithering: true
+          });
+          var cube = new THREE.Mesh(geometry, material);
+          cube.position.set(x + 0.2, 0, 0);
+          cube.name = "cube" + x;
+          scene.add(cube);
+        }
+        var ambient = new THREE.AmbientLight(0xffffff, 0.1);
+        scene.add(ambient);
 
-              1.0,  1.0,  1.0,
-              -1.0,  1.0,  1.0,
-              -1.0, -1.0,  1.0
-          ] );
+        // white spotlight shining from the side, casting a shadow
 
-// itemSize = 3 because there are 3 values (components) per vertex
-          geometry.addAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
-          var material = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
-          var mesh = new THREE.Mesh( geometry, material );
-          scene.add(mesh)
+        var spotLight = new THREE.SpotLight(0xffffff);
+        spotLight.position.set(100, 1000, 100);
 
+        spotLight.castShadow = true;
 
+        spotLight.shadow.mapSize.width = 1024;
+        spotLight.shadow.mapSize.height = 1024;
+
+        spotLight.shadow.camera.near = 500;
+        spotLight.shadow.camera.far = 4000;
+        spotLight.shadow.camera.fov = 30;
+
+        scene.add(spotLight);
+console.log(Math.sin(2))
         function animate() {
-
+          angle += 0.05;
+          cubeHeight = Math.pow(Math.sin(angle), 2) * 100 + 5;
+            getCubes(scene).forEach(cube=>{
+              cube.scale.y = cubeHeight;
+                }
+            )
           requestAnimationFrame(animate);
           renderer.render(scene, camera);
         }
