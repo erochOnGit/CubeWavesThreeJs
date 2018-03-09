@@ -17,8 +17,12 @@ const config = {
         loader: "babel-loader"
       },
       {
+        test: /\.(jpg|gif|png|svg)$/,
+        loader: "file-loader"
+      },
+      {
         test: /\.css$/,
-        use: ['style-loader','css-loader']
+        use: ["style-loader", "css-loader"]
       }
     ]
   }
