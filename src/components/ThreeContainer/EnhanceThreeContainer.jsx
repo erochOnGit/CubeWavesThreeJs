@@ -1,5 +1,7 @@
 import React from "react";
 import { compose, lifecycle } from "recompose";
+import rgbHex from "rgb-hex";
+const d3 = require("d3");
 import * as THREE from "three";
 var OrbitControls = require("three-orbit-controls")(THREE);
 
@@ -25,8 +27,8 @@ const ThreeContainer = () =>
       componentDidMount() {
         let angle = 0;
         let cubeHeight = 0.1;
-        let width = 21;
-        let height = 21;
+        let width = 61;
+        let height = 61;
         // var THREE = THREELib(); // return THREE JS
         // Our Javascript will go here.
         var scene = new THREE.Scene();
@@ -53,13 +55,14 @@ const ThreeContainer = () =>
         });
 
         var controls = new OrbitControls(camera);
+        // console.log(height / 2 - 1, width / 2 - 1);
 
-        for (let y = 0; y < height * 2; y += 2) {
-          for (let x = 0; x < width * 2; x += 2) {
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
             //first argument is width second is height and third is z axes
             var geometry = new THREE.BoxBufferGeometry(1, cubeHeight, 1);
             var material;
-            if (y == 20 && x == 20) {
+            if (y == height / 2 - 0.5 && x == width / 2 - 0.5) {
               material = new THREE.MeshPhongMaterial({
                 color: 0xffc0cb,
                 dithering: true
@@ -86,9 +89,15 @@ const ThreeContainer = () =>
               });
             }
             var cube = new THREE.Mesh(geometry, material);
+            // console.log(y, x);
 
-            cube.position.set(x * 0.7, 0, y * 0.7);
-            cube.name = "cube" + x;
+            if (y == height / 2 - 0.5 && x == width / 2 - 0.5) {
+              // console.log(y, x, height, width);
+              cube.name = "cube" + x + " centre";
+            } else {
+              cube.name = "cube" + x + y;
+            }
+            cube.position.set(x * 1.5, 0, y * 1.5);
             scene.add(cube);
           }
         }
@@ -110,27 +119,61 @@ const ThreeContainer = () =>
         spotLight.shadow.camera.fov = 30;
 
         scene.add(spotLight);
-
-        console.log(getDistance(getCubes(scene)[0], getCubes(scene)[20]));
-        console.log(getCubes(scene)[20]);
+        // console.log(getCubes(scene).map(cube => cube.name));
+        const CenterCube = getCubes(scene)
+          .filter(cube => cube.name.includes("centre"))
+          .reduce((acc, curr) => {
+            return curr;
+          }, {});
+        // console.log(getDistance(getCubes(scene)[0], getCubes(scene)[20]));
+        // console.log(getCubes(scene)[20]);
         function animate() {
-          angle += 0.04;
+          angle += 0.02;
           let offset = 0;
           let cubeIndex = 0;
+          requestAnimationFrame(animate);
+
           getCubes(scene).forEach(cube => {
             // if (cubeIndex % height === 0) {
             //   offset = 0;
             //   cubeIndex = 0;
             // }
-            offset = getDistance(cube, getCubes(scene)[220]);
-            let angleAndOffset = angle + (offset*0.15);
-            cubeHeight = (Math.pow(Math.sin(angleAndOffset), 2) * -200) - 50;
+            offset = getDistance(cube, CenterCube);
+            let angleAndOffset = angle + offset * 0.15;
+            cubeHeight = Math.pow(Math.sin(angleAndOffset), 2) * 200 + 50;
             cube.scale.y = cubeHeight;
+
+            const scaleR = d3
+              .scaleLinear()
+              .domain([0, 251])
+              .range([26, 183]);
+            let R = scaleR(cubeHeight);
+
+            const scaleG = d3
+              .scaleLinear()
+              .domain([0, 251])
+              .range([29, 158]);
+            let G = scaleG(cubeHeight);
+
+            const scaleB = d3
+              .scaleLinear()
+              .domain([0, 251])
+              .range([60, 127]);
+            let B = scaleB(cubeHeight);
+
+            //1a1d26    26,29,38
+            //242f35    36,47,53
+            //46585e    70,88,94
+            //b79e7f    183,158,127
+            //d0a980    208,169,128
+            //f8cc9b    248,204,155
+
+            let color = rgbHex(R, G, B);
+            cube.material.color.setHex(parseInt(color, 16));
+            // setHex()
             // offset += 0.03;
             // cubeIndex++;
           });
-
-          requestAnimationFrame(animate);
           renderer.render(scene, camera);
         }
         animate();
